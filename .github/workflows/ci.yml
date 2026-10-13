@@ -21,9 +21,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Run the gitleaks CLI directly: the gitleaks-action fails on a
+      # repo's first push because the root commit has no parent to diff against.
+      - name: Scan full history with gitleaks
+        run: |
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz \
+            | tar xz gitleaks
+          ./gitleaks git . --no-banner --redact -v
 
   # TODO (later phase): red-team smoke test that fails the build
   # if the attack success rate goes up compared to the last report.
