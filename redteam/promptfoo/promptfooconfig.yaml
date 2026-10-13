@@ -30,5 +30,9 @@ redteam:
     - excessive-agency    # OWASP LLM06 Excessive Agency
   strategies:
     - basic
-    - jailbreak
+    - jailbreak:meta
     - prompt-injection
+
+# Two requests at a time keeps a laptop running the local model from overheating.
+evaluateOptions:
+  maxConcurrency: 2
