@@ -1,0 +1,8 @@
+# The ACME-CANARY tokens and fake SSNs are planted test data, not real secrets.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Planted canary tokens and fake test data"
+regexes = ['''ACME-CANARY-[0-9a-f]{6}''']
+paths = ['''data/docs/''']

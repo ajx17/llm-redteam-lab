@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Secrets: never commit real keys
+.env
+
+# Generated attack output (keep the summary reports, not raw runs)
+reports/raw/
+.promptfoo/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
