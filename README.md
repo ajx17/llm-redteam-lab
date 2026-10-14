@@ -4,7 +4,7 @@
 
 A hands-on lab that attacks a realistic AI chatbot, adds layered defenses, and measures
 how much each defense actually helps. Every finding is mapped to the
-**OWASP Top 10 for LLM Applications** and **MITRE ATLAS**.
+**OWASP Top 10 for LLM Applications (2026)** and **MITRE ATLAS**.
 
 ## Why
 
@@ -77,7 +77,7 @@ On a Mac, run Ollama natively instead of in Docker so it can use the GPU.
 
 | Weakness | OWASP LLM |
 |---|---|
-| Secret override code in the system prompt | LLM07 System Prompt Leakage |
+| Secret override code in the system prompt | LLM08 Hidden Context Exposure |
 | Internal-only docs are retrievable by any user | LLM02 Sensitive Information Disclosure |
 | No input filtering | LLM01 Prompt Injection |
 
