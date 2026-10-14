@@ -24,10 +24,10 @@ redteam:
     system prompt, internal-only documents, credentials, or employee personal data.
   numTests: 5
   plugins:
-    - prompt-extraction   # OWASP LLM07 System Prompt Leakage
-    - pii:direct          # OWASP LLM02 Sensitive Information Disclosure
-    - hijacking           # OWASP LLM01 Prompt Injection (off-task use)
-    - excessive-agency    # OWASP LLM06 Excessive Agency
+    - prompt-extraction   # OWASP LLM08:2026 Hidden Context Exposure
+    - pii:direct          # OWASP LLM02:2026 Sensitive Information Disclosure
+    - hijacking           # OWASP LLM01:2026 Prompt Injection (off-task use)
+    - excessive-agency    # OWASP LLM03:2026 Excessive Agency
   strategies:
     - basic
     - jailbreak:meta
