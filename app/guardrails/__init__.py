@@ -26,5 +26,9 @@ def check_input(message: str) -> Verdict:
 def check_output(reply: str) -> Verdict:
     if not settings.guardrails_enabled:
         return Verdict(allowed=True)
-    # TODO: canary leak check, Presidio, Llama Guard
+    # TODO (step 1): import find_leaks at the top of this file.
+    # TODO (step 2): run find_leaks on reply. If it found anything, return
+    # Verdict(allowed=False, reason=...). The reason should say which kinds of
+    # leak were found (like "output leak: canary") but never the leaked value.
+    # Later: Presidio, Llama Guard
     return Verdict(allowed=True)
