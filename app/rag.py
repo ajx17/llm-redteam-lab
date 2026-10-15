@@ -25,9 +25,9 @@ def load_chunks(docs_dir: str | None = None) -> list[Chunk]:
     root = Path(docs_dir or settings.docs_dir)
     chunks = []
     for path in sorted(root.rglob("*.md")):
-        for para in path.read_text().split("\n\n"):
+        for para in path.read_text(encoding="utf-8").split("\n\n"):
             if para.strip():
-                chunks.append(Chunk(source=str(path.relative_to(root)), text=para.strip()))
+                chunks.append(Chunk(source=path.relative_to(root).as_posix(), text=para.strip()))
     return chunks
 
 
