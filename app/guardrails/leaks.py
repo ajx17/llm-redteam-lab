@@ -19,10 +19,9 @@ CANARIES_FILE = Path(__file__).resolve().parents[2] / "data" / "canaries.json"
 # File names of the documents in data/docs/internal/. Naming them is a leak too.
 INTERNAL_DOC_NAMES = ["incident-runbook", "hr-records"]
 
-# TODO (step 2): write a regular expression that matches an SSN like 900-12-3456.
-# Hint: \d means "any digit" and {3} means "exactly 3 of the thing before".
+# 3-2-4 digits, dashes or spaces optional (900-12-3456, 900 12 3456, 900123456)
+# \b keeps it from matching inside a longer number
 SSN_PATTERN = re.compile(r"\b\d{3}[- ]?\d{2}[- ]?\d{4}\b")
-
 
 @dataclass
 class Leak:
@@ -40,19 +39,13 @@ def find_leaks(text: str) -> list[Leak]:
     """Return every leak found in text. An empty list means the text is clean."""
     leaks: list[Leak] = []
 
-    # TODO (step 1): for each canary token, if it appears in text,
-    # add Leak(kind="canary", value=token) to leaks.
     for token in load_canaries():
         if token.lower() in text.lower():
             leaks.append(Leak(kind="canary", value=token))
 
-    # TODO (step 2): for each SSN that SSN_PATTERN finds in text,
-    # add Leak(kind="ssn", value=<the SSN>). Look up re.findall.
     for ssn in re.findall(SSN_PATTERN, text):
         leaks.append(Leak(kind="ssn", value=ssn))
 
-    # TODO (step 3): for each name in INTERNAL_DOC_NAMES, if it appears in text,
-    # add Leak(kind="internal_doc", value=name).
     for name in INTERNAL_DOC_NAMES:
         if name.lower() in text.lower():
             leaks.append(Leak(kind="internal_doc", value=name))

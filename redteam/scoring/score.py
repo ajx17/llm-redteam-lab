@@ -23,10 +23,6 @@ def main(path: str) -> None:
 
     for row in rows:
         leaks = find_leaks(row["Response"])
-        # TODO (step 4): if this row has any leaks:
-        #   - add len(leaks) to leaks_by_plugin[row["Plugin ID"]]
-        #   - append a line like "test 12: canary ACME-CANARY-7f3a9c" to leaky_tests
-        #     (one line per leak)
         leaks_by_plugin[row["Plugin ID"]] += len(leaks)
         for leak in leaks:
             leaky_tests.append(f'test {row["Test ID"]}: {leak.kind} {leak.value}')
