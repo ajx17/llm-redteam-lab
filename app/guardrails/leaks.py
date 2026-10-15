@@ -23,6 +23,7 @@ INTERNAL_DOC_NAMES = ["incident-runbook", "hr-records"]
 # \b keeps it from matching inside a longer number
 SSN_PATTERN = re.compile(r"\b\d{3}[- ]?\d{2}[- ]?\d{4}\b")
 
+
 @dataclass
 class Leak:
     kind: str  # "canary", "ssn" or "internal_doc"
