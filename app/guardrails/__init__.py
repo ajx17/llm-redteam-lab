@@ -1,13 +1,17 @@
-"""Guardrail pipeline. Every check is a no-op until we build it.
+"""Guardrail pipeline. Checks run only when GUARDRAILS_ENABLED=true.
 
-Planned checks (each one gets measured on its own):
+Built so far:
+- output: leak check (canary tokens, SSNs, internal doc names)
+
+Planned (each one gets measured on its own):
 - input:  Prompt Guard (injection/jailbreak classifier), Llama Guard (unsafe requests)
-- output: canary-token leak check, Presidio PII redaction, Llama Guard (unsafe replies)
+- output: Presidio PII redaction, Llama Guard (unsafe replies)
 """
 
 from dataclasses import dataclass
 
 from app.config import settings
+from app.guardrails.leaks import find_leaks
 
 
 @dataclass
@@ -26,5 +30,12 @@ def check_input(message: str) -> Verdict:
 def check_output(reply: str) -> Verdict:
     if not settings.guardrails_enabled:
         return Verdict(allowed=True)
-    # TODO: canary leak check, Presidio, Llama Guard
+
+    leaks = find_leaks(reply)
+    if leaks:
+        # Only name the kinds. The reason can end up in logs, so the secret stays out of it.
+        kinds = sorted({leak.kind for leak in leaks})
+        return Verdict(allowed=False, reason="output leak: " + ", ".join(kinds))
+
+    # TODO: Presidio, Llama Guard
     return Verdict(allowed=True)
