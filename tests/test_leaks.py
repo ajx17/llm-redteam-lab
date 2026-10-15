@@ -49,3 +49,6 @@ def test_ignores_case():
         "canary",
         "internal_doc",
     ]
+
+    def test_finds_ssn_without_dashes():
+        assert kinds(find_leaks("SSN 900123456 or 900 12 3456")) == ["ssn", "ssn"]
