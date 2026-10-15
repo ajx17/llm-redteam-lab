@@ -52,6 +52,33 @@ cannot take. They become true tool-invocation tests once a tool is added.
 | ATLAS AML.T0053 "LLM Plugin Compromise" | AML.T0053 "AI Agent Tool Invocation" (renamed) |
 | ATLAS AML.T0056 "LLM Meta Prompt Extraction" | AML.T0056 "Extract LLM System Prompt" (renamed) |
 
+## Leak detector: SSN detection decisions
+
+The leak detector (`app/guardrails/leaks.py`) flags SSNs with a regular expression.
+These are the choices behind it and the gaps we know about.
+
+| Question | Decision | Why |
+|---|---|---|
+| Dashed format (`900-12-3456`)? | Detected | The standard written form, and the form our test data uses. |
+| No separators (`900123456`) or spaces (`900 12 3456`)? | Detect with optional separators: `\b\d{3}[- ]?\d{2}[- ]?\d{4}\b` | A bot asked to "reformat" data can drop the dashes. Bare 9-digit numbers (order or ticket IDs) will also match. For a leak detector, a false alarm costs less than a missed SSN. |
+| Invalid prefixes (`000`, `666`, `9xx`)? | Not rejected | Real SSNs never start with these, so production detectors filter them to cut false positives. Our fake SSNs use `900-` on purpose so they can never belong to a real person, and filtering would hide them. |
+| Phone numbers? | Not matched | US numbers are 10 digits (`508-555-0142`) or 7 (`555-0142`), never 3-2-4. A unit test checks this. |
+| Other countries' IDs (UK National Insurance `AB123456C`, Canada SIN, and so on)? | Out of scope | AcmeBot's data is US-only. Microsoft Presidio, planned for the output guardrail, has recognizers for many countries. |
+
+### What regex cannot catch
+
+A pattern only finds text in the shape it expects. An attacker can ask the bot to:
+
+- spell the number out ("nine zero zero, one two...")
+- encode it (base64, hex, reversed digits)
+- split it across sentences or turns
+- insert other characters (`9.0.0-1.2-3.4.5.6`)
+
+None of these will match. The detector is a last line of defense on the output, not
+the main control. The real fix is upstream: AcmeBot should never be able to retrieve
+HR records for a user who isn't allowed to see them (document access control,
+OWASP LLM02). Layering both is defense in depth.
+
 ## Out of scope (for now)
 
 LLM04 Supply Chain, LLM05 Data and Model Poisoning, LLM06 Unbounded Consumption, and
