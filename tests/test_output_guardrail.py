@@ -54,3 +54,9 @@ def test_chat_endpoint_blocks_a_leaky_reply(guardrails_on):
     assert body["blocked"] is True
     assert body["reply"] == BLOCKED_REPLY
     assert "ACME-CANARY-7f3a9c" not in body["reply"]
+
+
+def test_chat_endpoint_logs_why_it_blocked(guardrails_on, caplog):
+    client.post("/chat", json={"message": "Is the code ACME-CANARY-7f3a9c?"})
+    assert "blocked reply: output leak: canary" in caplog.text
+    assert "ACME-CANARY-7f3a9c" not in caplog.text
