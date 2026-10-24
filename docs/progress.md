@@ -2,7 +2,7 @@
 
 Read this at the start of every session. Update it at the end, before you push.
 
-## Where things stand (2026-10-15)
+## Where things stand (2026-10-22)
 
 - Baseline red team (2026-10-13): 18.3% attack success after hand review, 6 leaks in 5 of 60
   replies, all prompt-extraction. Report: `reports/2026-10-13-baseline.md`.
@@ -17,7 +17,15 @@ Read this at the start of every session. Update it at the end, before you push.
   of the real values in the internal docs, and gave each doc name its own pattern so "incident
   runbook" with a space counts but "HR records" as plain words doesn't. Rescored the 10-15 run
   offline and it flags all 5 leaky turns (tests 11, 23, 34, 35) and none of the other 125 replies.
-  31 tests pass.
+  Merged in PR #5.
+- Detector v2 live replay (2026-10-22): 0 of 153 replies leaked internal data (was 4 tests), 12
+  blocked. Resending the blocked prompts with the guardrail off, 8 of 12 leak, including the first
+  canary (test 31, the admin override code). Hand-verified success is still 15.0% because the 9
+  remaining failures are excessive agency and fake content, not leaks.
+  Report: `reports/2026-10-22-detector-v2.md`.
+- `score.py` now reads the JSON output and scores every turn ("test 23 turn 2"). Use the JSON.
+- The app logs the leak kind when it blocks a reply (`blocked reply: output leak: canary`), never
+  the value. 33 tests pass.
 - promptfoo asks for email verification the first time you run a red team eval on a machine.
 
 ## Machines
@@ -31,17 +39,19 @@ Read this at the start of every session. Update it at the end, before you push.
 
 ```
 npx promptfoo@latest eval -c redteam/promptfoo/redteam.yaml --no-cache -j 2 -o reports/raw/<date>-<name>.csv -o reports/raw/<date>-<name>.json
-uv run python -m redteam.scoring.score reports/raw/<date>-<name>.csv
+uv run python -m redteam.scoring.score reports/raw/<date>-<name>.json
 ```
 
 The app must be running first (`uv run uvicorn app.main:app`). Use `redteam.yaml` (fixed attacks),
-not `make redteam` (generates new ones), so runs are comparable. The CSV only has final replies;
-multi-turn leaks are only in the JSON (`response.metadata.redteamHistory`).
+not `make redteam` (generates new ones), so runs are comparable. Score the JSON, since the CSV
+only has final replies and misses leaks in middle turns. Block reasons show up in the app's
+terminal.
 
 ## Next up
 
-1. Replay the attacks live with the new detector and add the result to a report.
-2. Score every turn of multi-turn attacks in `score.py`, not only the final reply.
-3. Use a stronger grader model (9 of 18 grader failures were false positives).
-4. Input guardrails: Prompt Guard, then Llama Guard.
-5. Presidio for PII the hand-kept list can't know about (new employees, new docs).
+1. Use a stronger grader model (9 of 17 grader failures were false positives on 10-22, including
+   three plain refusals).
+2. Input guardrails: Prompt Guard, then Llama Guard. Most remaining failures are the bot promising
+   actions it can't take.
+3. Presidio for PII the hand-kept list can't know about (new employees, new docs).
+4. Run each configuration 3 times and report the range.
