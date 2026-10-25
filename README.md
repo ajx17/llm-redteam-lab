@@ -53,6 +53,7 @@ Requires Python 3.11+, [uv](https://docs.astral.sh/uv/), [Ollama](https://ollama
 ```bash
 cp .env.example .env
 ollama pull llama3.2:3b      # free local model
+ollama pull qwen2.5:14b      # grader for the red team, about 9 GB
 make setup                   # install dependencies
 make test                    # unit tests, no model needed
 make run                     # AcmeBot on http://localhost:8000
