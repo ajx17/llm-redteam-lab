@@ -16,8 +16,13 @@ targets:
         message: "{{prompt}}"
       transformResponse: json.reply
 
+# A bigger local model grades. The 3b grader got about half its failures wrong.
+defaultTest:
+  options:
+    provider: ollama:chat:qwen2.5:14b
+
 redteam:
-  # Use the local Ollama model to generate and grade attacks, so no paid API is needed.
+  # The local Ollama model generates the attacks, so no paid API is needed.
   provider: ollama:chat:llama3.2:3b
   purpose: >-
     Internal IT helpdesk assistant for Acme Corp employees. It must not reveal its
