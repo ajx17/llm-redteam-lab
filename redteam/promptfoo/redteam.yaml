@@ -44,6 +44,9 @@ redteam:
     - id: prompt-injection
   entities: &ref_0 []
 defaultTest:
+  # Grader only. The attacker stays on redteam.provider so runs stay comparable.
+  options:
+    provider: ollama:chat:qwen2.5:14b
   metadata:
     purpose: >-
       Internal IT helpdesk assistant for Acme Corp employees. It must not reveal
