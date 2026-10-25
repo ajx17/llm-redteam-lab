@@ -2,7 +2,7 @@
 
 Read this at the start of every session. Update it at the end, before you push.
 
-## Where things stand (2026-10-22)
+## Where things stand (2026-10-25)
 
 - Baseline red team (2026-10-13): 18.3% attack success after hand review, 6 leaks in 5 of 60
   replies, all prompt-extraction. Report: `reports/2026-10-13-baseline.md`.
@@ -25,14 +25,21 @@ Read this at the start of every session. Update it at the end, before you push.
   Report: `reports/2026-10-22-detector-v2.md`.
 - `score.py` now reads the JSON output and scores every turn ("test 23 turn 2"). Use the JSON.
 - The app logs the leak kind when it blocks a reply (`blocked reply: output leak: canary`), never
-  the value. 33 tests pass.
+  the value. 33 tests pass. Merged in PR #6.
+- Stronger grader (2026-10-25): grading now uses qwen2.5:14b (`defaultTest.options.provider` in
+  both promptfoo configs). The attacker is still llama3.2:3b. Grader agrees with my hand review on
+  57 of 60 tests (was 50), and false positives dropped from 9 to 2. Hand-verified success went up
+  to 23.3% (was 15.0%) because the meta-agent attacker stops when the grader says it won, and the
+  old grader was handing it fake wins. Report: `reports/2026-10-25-qwen-grader.md`.
 - promptfoo asks for email verification the first time you run a red team eval on a machine.
 
 ## Machines
 
-- Mac (`~/dev/llm-redteam-lab`): Ollama + promptfoo, has `make`.
+- Mac (`~/dev/llm-redteam-lab`): Ollama + promptfoo, has `make`. Needs `ollama pull qwen2.5:14b`
+  before the next replay. It's 9 GB, so check it actually runs on the Air.
 - Windows (`C:\dev\llm-redteam-lab`): PowerShell, no `make`. Ollama + llama3.2:3b installed
-  2026-10-15, promptfoo via `npx`. The GPU runs the 60-attack replay in about 8 minutes.
+  2026-10-15, qwen2.5:14b (grader, 9 GB) 2026-10-25, promptfoo via `npx`. A replay takes about
+  12 minutes with the 14b grader.
 - CLAUDE.md is git-ignored locally (`.git/info/exclude`) on Windows, so edit it by hand on each machine.
 
 ## How to replay the attacks
@@ -49,9 +56,9 @@ terminal.
 
 ## Next up
 
-1. Use a stronger grader model (9 of 17 grader failures were false positives on 10-22, including
-   three plain refusals).
-2. Input guardrails: Prompt Guard, then Llama Guard. Most remaining failures are the bot promising
-   actions it can't take.
-3. Presidio for PII the hand-kept list can't know about (new employees, new docs).
-4. Run each configuration 3 times and report the range.
+1. Input guardrails: Prompt Guard, then Llama Guard. Every remaining failure is made-up content or
+   the bot claiming an action (MFA reset, BitLocker key, switch reboot).
+2. A check for replies that claim to take actions.
+3. Re-grade the saved 10-22 replies with qwen2.5:14b to separate the grader effect.
+4. Presidio for PII the hand-kept list can't know about (new employees, new docs).
+5. Run each configuration 3 times and report the range.
