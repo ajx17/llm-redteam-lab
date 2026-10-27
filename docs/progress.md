@@ -2,7 +2,7 @@
 
 Read this at the start of every session. Update it at the end, before you push.
 
-## Where things stand (2026-10-25)
+## Where things stand (2026-10-27)
 
 - Baseline red team (2026-10-13): 18.3% attack success after hand review, 6 leaks in 5 of 60
   replies, all prompt-extraction. Report: `reports/2026-10-13-baseline.md`.
@@ -30,16 +30,27 @@ Read this at the start of every session. Update it at the end, before you push.
   both promptfoo configs). The attacker is still llama3.2:3b. Grader agrees with my hand review on
   57 of 60 tests (was 50), and false positives dropped from 9 to 2. Hand-verified success went up
   to 23.3% (was 15.0%) because the meta-agent attacker stops when the grader says it won, and the
-  old grader was handing it fake wins. Report: `reports/2026-10-25-qwen-grader.md`.
+  old grader was handing it fake wins. Report: `reports/2026-10-25-qwen-grader.md`. Merged in PR #7.
+- Input guard (2026-10-27): Llama Guard 3 checks every message before the bot sees it, using four
+  categories I wrote for a helpdesk (`app/guardrails/llama_guard.py`). Turned on with
+  `INPUT_GUARD_MODEL=llama-guard3:8b`, off when empty. The 1b model missed obvious attacks, so 8b.
+  Hand-verified success dropped to 5.0% (was 23.3%). All 40 single-turn attacks blocked at input,
+  the 3 that got through were all meta-agent. Blocked 0 of 20 normal questions
+  (`redteam/promptfoo/benign.yaml`). Report: `reports/2026-10-27-input-guard.md`.
+- Found while testing: two normal questions ("my account was hacked", "set up MFA on my new phone")
+  make the unguarded bot leak the runbook canary and pager number, because the retriever hands
+  `internal/` docs to anyone. The output check catches it, but the employee gets a refusal.
 - promptfoo asks for email verification the first time you run a red team eval on a machine.
 
 ## Machines
 
 - Mac (`~/dev/llm-redteam-lab`): Ollama + promptfoo, has `make`. Needs `ollama pull qwen2.5:14b`
-  before the next replay. It's 9 GB, so check it actually runs on the Air.
+  and `ollama pull llama-guard3:8b` before the next replay. That's 14 GB, so check it runs on the Air.
 - Windows (`C:\dev\llm-redteam-lab`): PowerShell, no `make`. Ollama + llama3.2:3b installed
-  2026-10-15, qwen2.5:14b (grader, 9 GB) 2026-10-25, promptfoo via `npx`. A replay takes about
-  12 minutes with the 14b grader.
+  2026-10-15, qwen2.5:14b (grader, 9 GB) 2026-10-25, llama-guard3:8b (input guard, 4.9 GB)
+  2026-10-27, promptfoo via `npx`. A replay takes about 12 minutes, or about 31 with the input
+  guard on because the three models don't all fit in 16 GB. (llama-guard3:1b is also pulled but
+  unused, `ollama rm llama-guard3:1b` frees 1.6 GB.)
 - CLAUDE.md is git-ignored locally (`.git/info/exclude`) on Windows, so edit it by hand on each machine.
 
 ## How to replay the attacks
@@ -49,16 +60,19 @@ npx promptfoo@latest eval -c redteam/promptfoo/redteam.yaml --no-cache -j 2 -o r
 uv run python -m redteam.scoring.score reports/raw/<date>-<name>.json
 ```
 
-The app must be running first (`uv run uvicorn app.main:app`). Use `redteam.yaml` (fixed attacks),
+The app must be running first (`uv run uvicorn app.main:app`). For the input guard, set
+`$env:INPUT_GUARD_MODEL = 'llama-guard3:8b'` in that terminal first. To check for false positives,
+run `npx promptfoo@latest eval -c redteam/promptfoo/benign.yaml --no-cache` too. Use `redteam.yaml` (fixed attacks),
 not `make redteam` (generates new ones), so runs are comparable. Score the JSON, since the CSV
 only has final replies and misses leaks in middle turns. Block reasons show up in the app's
 terminal.
 
 ## Next up
 
-1. Input guardrails: Prompt Guard, then Llama Guard. Every remaining failure is made-up content or
-   the bot claiming an action (MFA reset, BitLocker key, switch reboot).
-2. A check for replies that claim to take actions.
-3. Re-grade the saved 10-22 replies with qwen2.5:14b to separate the grader effect.
-4. Presidio for PII the hand-kept list can't know about (new employees, new docs).
-5. Run each configuration 3 times and report the range.
+1. Keep `data/docs/internal/` out of retrieval for normal users (the leak from normal questions).
+2. Generate a fresh attack set and rerun. The Llama Guard categories were written from these 60
+   attacks, so the 5.0% might partly be fitting this set.
+3. More normal questions in `benign.yaml`.
+4. Prompt Guard as a second input check, measured on its own.
+5. Re-grade the saved 10-22 replies with qwen2.5:14b to separate the grader effect.
+6. Presidio, and 3 runs per configuration.
