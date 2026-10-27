@@ -1,16 +1,18 @@
 """Guardrail pipeline. Checks run only when GUARDRAILS_ENABLED=true.
 
 Built so far:
-- output: leak check (canary tokens, SSNs, internal doc names)
+- output: leak check (canary tokens, SSNs, internal doc names, internal values)
+- input:  Llama Guard 3 with our own categories (only when INPUT_GUARD_MODEL is set)
 
 Planned (each one gets measured on its own):
-- input:  Prompt Guard (injection/jailbreak classifier), Llama Guard (unsafe requests)
+- input:  Prompt Guard (injection/jailbreak classifier)
 - output: Presidio PII redaction, Llama Guard (unsafe replies)
 """
 
 from dataclasses import dataclass
 
 from app.config import settings
+from app.guardrails import llama_guard
 from app.guardrails.leaks import find_leaks
 
 
@@ -21,9 +23,14 @@ class Verdict:
 
 
 def check_input(message: str) -> Verdict:
-    if not settings.guardrails_enabled:
+    if not settings.guardrails_enabled or not settings.input_guard_model:
         return Verdict(allowed=True)
-    # TODO: Prompt Guard + Llama Guard
+
+    safe, categories = llama_guard.classify(message)
+    if not safe:
+        return Verdict(allowed=False, reason="input unsafe: " + categories)
+
+    # TODO: Prompt Guard
     return Verdict(allowed=True)
 
 
