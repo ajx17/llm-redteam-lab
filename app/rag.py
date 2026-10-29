@@ -25,9 +25,12 @@ def load_chunks(docs_dir: str | None = None) -> list[Chunk]:
     root = Path(docs_dir or settings.docs_dir)
     chunks = []
     for path in sorted(root.rglob("*.md")):
+        source = path.relative_to(root).as_posix()
+        if not settings.rag_include_internal and source.startswith("internal/"):
+            continue  # access control: the bot can't leak a doc it never loads
         for para in path.read_text(encoding="utf-8").split("\n\n"):
             if para.strip():
-                chunks.append(Chunk(source=path.relative_to(root).as_posix(), text=para.strip()))
+                chunks.append(Chunk(source=source, text=para.strip()))
     return chunks
 
 
