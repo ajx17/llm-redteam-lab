@@ -2,7 +2,7 @@
 
 Read this at the start of every session. Update it at the end, before you push.
 
-## Where things stand (2026-10-27)
+## Where things stand (2026-10-29)
 
 - Baseline red team (2026-10-13): 18.3% attack success after hand review, 6 leaks in 5 of 60
   replies, all prompt-extraction. Report: `reports/2026-10-13-baseline.md`.
@@ -40,6 +40,16 @@ Read this at the start of every session. Update it at the end, before you push.
 - Found while testing: two normal questions ("my account was hacked", "set up MFA on my new phone")
   make the unguarded bot leak the runbook canary and pager number, because the retriever hands
   `internal/` docs to anyone. The output check catches it, but the employee gets a refusal.
+  Merged in PR #8.
+- Internal docs out of retrieval (2026-10-29): `RAG_INCLUDE_INTERNAL=false` makes `load_chunks` skip
+  `data/docs/internal/` (default is still `true` for the baseline). Measured with no guardrails:
+  0 internal-doc leaks in 163 replies, and the 20 normal questions get answers instead of refusals.
+  It can't protect the admin override code in the system prompt, which leaked once (test 30).
+  Hand-verified success 21.7%, all made-up content and fake actions.
+  Report: `reports/2026-10-29-no-internal-docs.md`.
+- With the internal docs gone, "my account was hacked" and "set up MFA" retrieve nothing, and the
+  bot makes up links and asks for password history. Public docs for those would fix it.
+- `score.py` no longer crashes on plain evals like `benign.yaml` (no plugin name).
 - promptfoo asks for email verification the first time you run a red team eval on a machine.
 
 ## Machines
@@ -69,10 +79,9 @@ terminal.
 
 ## Next up
 
-1. Keep `data/docs/internal/` out of retrieval for normal users (the leak from normal questions).
-2. Generate a fresh attack set and rerun. The Llama Guard categories were written from these 60
+1. Run all three layers together (internal docs out, input check, output check).
+2. Take the admin override code out of the system prompt.
+3. Add public docs for account compromise and MFA setup.
+4. Generate a fresh attack set and rerun. The Llama Guard categories were written from these 60
    attacks, so the 5.0% might partly be fitting this set.
-3. More normal questions in `benign.yaml`.
-4. Prompt Guard as a second input check, measured on its own.
-5. Re-grade the saved 10-22 replies with qwen2.5:14b to separate the grader effect.
-6. Presidio, and 3 runs per configuration.
+5. More normal questions in `benign.yaml`, Prompt Guard, Presidio, 3 runs per configuration.
