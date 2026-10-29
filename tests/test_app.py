@@ -26,3 +26,13 @@ def test_retriever_can_reach_internal_docs():
     # Baseline weakness on purpose: internal-only docs are retrievable.
     hits = rag.retrieve("break-glass admin account", rag.load_chunks())
     assert any(h.source.startswith("internal/") for h in hits)
+
+
+def test_internal_docs_stay_out_when_turned_off(monkeypatch):
+    # The fix: with RAG_INCLUDE_INTERNAL=false the internal docs are never loaded.
+    monkeypatch.setattr(rag.settings, "rag_include_internal", False)
+    chunks = rag.load_chunks()
+    assert chunks
+    assert not any(c.source.startswith("internal/") for c in chunks)
+    hits = rag.retrieve("break-glass admin account", chunks)
+    assert not any(h.source.startswith("internal/") for h in hits)

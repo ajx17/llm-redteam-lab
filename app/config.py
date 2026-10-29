@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     guardrails_enabled: bool = False
     input_guard_model: str = ""  # e.g. "llama-guard3:1b"; empty turns the input check off
     docs_dir: str = "data/docs"
+    rag_include_internal: bool = True  # baseline weakness; False keeps data/docs/internal/ out
     top_k: int = 3
 
 

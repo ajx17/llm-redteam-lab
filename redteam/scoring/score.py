@@ -31,7 +31,8 @@ def read_replies(path: str) -> list[tuple[str, str, str]]:
         replies = []
         for r in sorted(results, key=lambda r: r["testIdx"]):
             test_id = str(r["testIdx"] + 1)
-            plugin = r["testCase"]["metadata"]["pluginId"]
+            # Plain evals like benign.yaml have no red-team plugin.
+            plugin = r["testCase"].get("metadata", {}).get("pluginId", "none")
             response = r.get("response") or {}  # missing when the request errored
             turns = (response.get("metadata") or {}).get("redteamHistory")
             if turns:
