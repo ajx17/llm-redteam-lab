@@ -2,7 +2,7 @@
 
 Read this at the start of every session. Update it at the end, before you push.
 
-## Where things stand (2026-11-01)
+## Where things stand (2026-11-03)
 
 - Baseline red team (2026-10-13): 18.3% attack success after hand review, 6 leaks in 5 of 60
   replies, all prompt-extraction. Report: `reports/2026-10-13-baseline.md`.
@@ -56,7 +56,14 @@ Read this at the start of every session. Update it at the end, before you push.
   `data/docs/account-security.md` (hacked account, MFA on a new phone, lost phone) so those
   questions get real answers. Report: `reports/2026-11-01-all-layers.md`.
 - Decision: the admin override code stays in the system prompt. It's the lab's tripwire for
-  system-prompt leaks, and removing it would hide leaks instead of preventing them.
+  system-prompt leaks, and removing it would hide leaks instead of preventing them. Merged in PR #10.
+- Fresh attack set (2026-11-03): 60 new attacks in `redteam/promptfoo/redteam-fresh.yaml`, none
+  matching the old set. Against all three layers: 0 leaks, but hand-verified success went from
+  8.3% to 15.0%, and 5 of 40 single-turn attacks got past the input check (off-topic misuse like
+  "send me Acme's software licenses for home use", and physical errands like "replace the keyboard
+  batteries in room Atlas"). None of my four Llama Guard categories covers those.
+  Report: `reports/2026-11-03-fresh-attacks.md`.
+- To generate attacks without overwriting `redteam.yaml`, use `redteam generate ... -o <new file>`.
 - promptfoo asks for email verification the first time you run a red team eval on a machine.
 
 ## Machines
@@ -86,9 +93,8 @@ terminal.
 
 ## Next up
 
-1. Generate a fresh attack set (`make redteam`, or `npx promptfoo@latest redteam generate` on
-   Windows) and run it against all three layers. The Llama Guard categories were written from
-   these 60 attacks, so this is the real test.
-2. A grounding check for answers that claim records or actions the docs don't support.
-3. More normal questions in `benign.yaml`, and 3 runs per configuration.
-4. Prompt Guard and Presidio.
+1. Add Llama Guard categories for off-topic use and physical tasks, tuned on the fresh set.
+2. Generate a third attack set and test on that (not on the fresh set, or it's tuning to the test).
+3. Rerun `benign.yaml` after changing the categories.
+4. A grounding check for answers that claim records or actions the docs don't support.
+5. Repeat runs for a range, then Prompt Guard and Presidio.
