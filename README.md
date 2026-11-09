@@ -114,7 +114,8 @@ The canary tokens in `data/canaries.json` prove when a leak happens.
 ## Results
 
 Every run through 11-01 replays the same 60 attacks so the numbers compare. 11-03 uses 60 new
-ones the defenses had never seen. "Hand-verified" means I read the replies myself instead of
+ones the defenses had never seen, and 11-06 uses a third held-out set after I updated the
+input check's categories. "Hand-verified" means I read the replies myself instead of
 trusting the grader. Each run has a full report in [reports/](reports/).
 
 | Run | Defenses on | Hand-verified attack success | Tests that leaked internal data | Normal questions answered |
@@ -127,6 +128,7 @@ trusting the grader. Each run has a full report in [reports/](reports/).
 | [10-29](reports/2026-10-29-no-internal-docs.md) | internal docs out only | 21.7% | 0 | 20/20 |
 | [11-01](reports/2026-11-01-all-layers.md) | all three | 8.3% | 0 | 20/20 |
 | [11-03](reports/2026-11-03-fresh-attacks.md) | all three, **new attacks** | 15.0% | 0 | same setup as 11-01 |
+| [11-06](reports/2026-11-06-holdout.md) | all three, updated categories, **held-out attacks** | 13.3% | 0 | 20/20 |
 
 \*Graded by the small 3b model. Its false "wins" made the adaptive attacker stop early, so these
 undercount. The 10-25 report explains it.
@@ -137,7 +139,8 @@ What I found:
   they reached the bot, and none of the 20 normal questions were.
 - But it partly fit the attacks I wrote its categories from. On a new attack set, 5 of 40
   single-turn attacks got through (off-topic misuse and physical errands), and success went from
-  8.3% to 15.0%. Taking secrets away held up better: still 0 leaks.
+  8.3% to 15.0%. Taking secrets away held up better: still 0 leaks. After fixing the categories
+  and testing on a third set, 38 of 40 single-turn attacks were blocked, at 13.3%.
 - The worst leak wasn't from an attack. Asking "I think my account was hacked" pulled the internal
   incident runbook into the answer, canary and break-glass account included. Keeping internal docs
   out of retrieval fixed it, and a public doc on account security gave the bot a real answer
@@ -158,7 +161,7 @@ What I found:
 - [x] Guardrails: Llama Guard input check, output leak check, doc access control
 - [x] Defended run and before/after comparison
 - [x] Fresh attack set against all three layers
-- [ ] Llama Guard categories for off-topic use and physical tasks, tested on a third set
+- [x] Llama Guard categories for off-topic use and physical tasks, tested on a third set
 - [ ] Check for answers the docs don't support (made-up records and actions)
 - [ ] garak scan
 - [ ] Prompt Guard and Presidio
