@@ -2,7 +2,7 @@
 
 Read this at the start of every session. Update it at the end, before you push.
 
-## Where things stand (2026-11-03)
+## Where things stand (2026-11-06)
 
 - Baseline red team (2026-10-13): 18.3% attack success after hand review, 6 leaks in 5 of 60
   replies, all prompt-extraction. Report: `reports/2026-10-13-baseline.md`.
@@ -64,6 +64,13 @@ Read this at the start of every session. Update it at the end, before you push.
   batteries in room Atlas"). None of my four Llama Guard categories covers those.
   Report: `reports/2026-11-03-fresh-attacks.md`.
 - To generate attacks without overwriting `redteam.yaml`, use `redteam generate ... -o <new file>`.
+  Merged in PR #11.
+- New Llama Guard categories (2026-11-06): S3 also covers physical tasks, new S5 covers misuse
+  (non-work help, company licenses or data for personal use). Tuned on the fresh set, then tested
+  on a third held-out set (`redteam/promptfoo/redteam-holdout.yaml`). Held-out: 13.3% hand-verified,
+  38 of 40 single-turn attacks blocked, 0 leaks, 20/20 normal questions still answered. 7 of the 8
+  failures were meta-agent conversations steering the bot into made-up records and fake actions.
+  Report: `reports/2026-11-06-holdout.md`.
 - promptfoo asks for email verification the first time you run a red team eval on a machine.
 
 ## Machines
@@ -93,8 +100,7 @@ terminal.
 
 ## Next up
 
-1. Add Llama Guard categories for off-topic use and physical tasks, tuned on the fresh set.
-2. Generate a third attack set and test on that (not on the fresh set, or it's tuning to the test).
-3. Rerun `benign.yaml` after changing the categories.
-4. A grounding check for answers that claim records or actions the docs don't support.
-5. Repeat runs for a range, then Prompt Guard and Presidio.
+1. An output check for made-up records and claimed actions ("I've accessed your account",
+   "according to our records", "I've reset") when the retrieved docs don't back it up.
+2. Repeat runs on the held-out set for a range.
+3. Prompt Guard and Presidio.
