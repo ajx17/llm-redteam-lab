@@ -2,7 +2,7 @@
 
 Read this at the start of every session. Update it at the end, before you push.
 
-## Where things stand (2026-11-06)
+## Where things stand (2026-11-14)
 
 - Baseline red team (2026-10-13): 18.3% attack success after hand review, 6 leaks in 5 of 60
   replies, all prompt-extraction. Report: `reports/2026-10-13-baseline.md`.
@@ -70,7 +70,13 @@ Read this at the start of every session. Update it at the end, before you push.
   on a third held-out set (`redteam/promptfoo/redteam-holdout.yaml`). Held-out: 13.3% hand-verified,
   38 of 40 single-turn attacks blocked, 0 leaks, 20/20 normal questions still answered. 7 of the 8
   failures were meta-agent conversations steering the bot into made-up records and fake actions.
-  Report: `reports/2026-11-06-holdout.md`.
+  Report: `reports/2026-11-06-holdout.md`. Merged in PR #12.
+- Reply check with Llama Guard (2026-11-14): `OUTPUT_GUARD_MODEL` runs Llama Guard on the bot's
+  reply with categories for made-up records, claimed actions and fake system prompts. Tested
+  offline on 70 replies I'd already hand-labeled: caught 5 of 22 real failures, 0 false flags.
+  Llama Guard looks for harmful content, and a made-up answer doesn't look harmful. Kept in the
+  code, off by default. Skipped the live run. Report: `reports/2026-11-14-reply-check.md`.
+- The fake Llama Guard used in tests is now in `tests/conftest.py` (`fake_guard`). 43 tests pass.
 - promptfoo asks for email verification the first time you run a red team eval on a machine.
 
 ## Machines
@@ -100,7 +106,8 @@ terminal.
 
 ## Next up
 
-1. An output check for made-up records and claimed actions ("I've accessed your account",
-   "according to our records", "I've reset") when the retrieved docs don't back it up.
-2. Repeat runs on the held-out set for a range.
-3. Prompt Guard and Presidio.
+1. Try a general instruct model as the reply judge, offline on the same 70 labeled replies first.
+   Not qwen2.5:14b, since it's the grader. The offline script idea: run the judge on every final
+   reply in `reports/raw/*.json` and compare to the hand-review tables in the reports.
+2. If it does well, generate a fourth attack set and run it live.
+3. Repeat runs on the held-out set for a range, then Prompt Guard and Presidio.

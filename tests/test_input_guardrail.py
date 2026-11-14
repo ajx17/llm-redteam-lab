@@ -3,31 +3,16 @@
 Run them with: uv run pytest tests/test_input_guardrail.py -v
 """
 
-import httpx
 import pytest
 from fastapi.testclient import TestClient
 
 from app.config import settings
-from app.guardrails import check_input, llama_guard
+from app.guardrails import check_input
 from app.main import BLOCKED_REPLY, app
 
 client = TestClient(app)
 
-
-@pytest.fixture
-def fake_guard(monkeypatch):
-    """Turn the input guard on and make Llama Guard answer with whatever the test sets."""
-    monkeypatch.setattr(settings, "guardrails_enabled", True)
-    monkeypatch.setattr(settings, "input_guard_model", "llama-guard3:1b")
-    sent = {}
-
-    def fake_post(url, json, timeout):
-        sent["prompt"] = json["prompt"]
-        request = httpx.Request("POST", url)
-        return httpx.Response(200, json={"response": sent["answer"]}, request=request)
-
-    monkeypatch.setattr(llama_guard.httpx, "post", fake_post)
-    return sent
+# fake_guard (the faked Llama Guard) is in conftest.py, shared with the reply check tests.
 
 
 def test_off_when_no_model_is_set(monkeypatch):

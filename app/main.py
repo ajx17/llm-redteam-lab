@@ -57,7 +57,7 @@ def chat(req: ChatRequest) -> ChatResponse:
     context = "\n\n".join(f"[{h.source}]\n{h.text}" for h in hits)
     reply = llm.generate(SYSTEM_PROMPT, f"Context:\n{context}\n\nQuestion: {req.message}")
 
-    verdict = guardrails.check_output(reply)
+    verdict = guardrails.check_output(reply, req.message)
     if not verdict.allowed:
         log.warning("blocked reply: %s", verdict.reason)
         return ChatResponse(reply=BLOCKED_REPLY, sources=[], blocked=True)
