@@ -56,6 +56,7 @@ cp .env.example .env
 ollama pull llama3.2:3b      # free local model
 ollama pull qwen2.5:14b      # grader for the red team, about 9 GB
 ollama pull llama-guard3:8b  # input guardrail, only if INPUT_GUARD_MODEL is set
+ollama pull llama3.1:8b      # reply judge, only if OUTPUT_GUARD_MODEL is set
 make setup                   # install dependencies
 make test                    # unit tests, no model needed
 make run                     # AcmeBot on http://localhost:8000
@@ -84,7 +85,7 @@ Each defense has its own switch in `.env`, so it can be measured on its own.
 |---|---|
 | `GUARDRAILS_ENABLED=true` | Turns on the output leak check (canaries, SSNs, internal doc names and values) |
 | `INPUT_GUARD_MODEL=llama-guard3:8b` | Checks every message with Llama Guard first. Needs `GUARDRAILS_ENABLED=true`. Empty = off |
-| `OUTPUT_GUARD_MODEL=llama-guard3:8b` | Checks the bot's reply with Llama Guard for made-up records and claimed actions. Catches about 1 in 4, see the 11-14 report. Empty = off |
+| `OUTPUT_GUARD_MODEL=llama3.1:8b` | A general model judges the bot's reply for made-up records, claimed actions and fake system prompts. Caught 14 of 22 offline, see the 11-18 report. Empty = off |
 | `RAG_INCLUDE_INTERNAL=false` | Keeps `data/docs/internal/` out of retrieval. `true` is the vulnerable baseline |
 
 ## Running a red team
@@ -153,7 +154,8 @@ What I found:
 - What still gets through is the bot making up employee records and fake system prompts when an
   attacker asks normal-sounding questions over several turns. Llama Guard on the reply only caught
   5 of 22 of those, because a made-up answer doesn't look harmful
-  ([report](reports/2026-11-14-reply-check.md)).
+  ([report](reports/2026-11-14-reply-check.md)). A general model as the judge caught 14 of 22, but
+  also flagged 1 of 20 normal questions ([report](reports/2026-11-18-reply-judge.md)).
 
 ## Roadmap
 
