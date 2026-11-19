@@ -3,8 +3,8 @@
 Built so far:
 - output: leak check (canary tokens, SSNs, internal doc names, internal values)
 - input:  Llama Guard 3 with our own categories (only when INPUT_GUARD_MODEL is set)
-- output: Llama Guard 3 on the reply, for made-up records and claimed actions
-          (only when OUTPUT_GUARD_MODEL is set)
+- output: a general chat model judges the reply for made-up records, claimed actions and
+          fake system prompts (only when OUTPUT_GUARD_MODEL is set, e.g. llama3.1:8b)
 
 Planned (each one gets measured on its own):
 - input:  Prompt Guard (injection/jailbreak classifier)
@@ -14,7 +14,7 @@ Planned (each one gets measured on its own):
 from dataclasses import dataclass
 
 from app.config import settings
-from app.guardrails import llama_guard
+from app.guardrails import llama_guard, reply_judge
 from app.guardrails.leaks import find_leaks
 
 
@@ -47,7 +47,7 @@ def check_output(reply: str, message: str = "") -> Verdict:
         return Verdict(allowed=False, reason="output leak: " + ", ".join(kinds))
 
     if settings.output_guard_model:
-        safe, categories = llama_guard.classify(message, reply=reply)
+        safe, categories = reply_judge.judge(message, reply)
         if not safe:
             return Verdict(allowed=False, reason="reply unsafe: " + categories)
 
