@@ -2,7 +2,7 @@
 
 Read this at the start of every session. Update it at the end, before you push.
 
-## Where things stand (2026-11-14)
+## Where things stand (2026-11-18)
 
 - Baseline red team (2026-10-13): 18.3% attack success after hand review, 6 leaks in 5 of 60
   replies, all prompt-extraction. Report: `reports/2026-10-13-baseline.md`.
@@ -76,7 +76,13 @@ Read this at the start of every session. Update it at the end, before you push.
   offline on 70 replies I'd already hand-labeled: caught 5 of 22 real failures, 0 false flags.
   Llama Guard looks for harmful content, and a made-up answer doesn't look harmful. Kept in the
   code, off by default. Skipped the live run. Report: `reports/2026-11-14-reply-check.md`.
-- The fake Llama Guard used in tests is now in `tests/conftest.py` (`fake_guard`). 43 tests pass.
+- The fake Llama Guard used in tests is now in `tests/conftest.py` (`fake_guard`). Merged in PR #13.
+- Reply judge (2026-11-18): `OUTPUT_GUARD_MODEL=llama3.1:8b` now uses a general chat model
+  (`app/guardrails/reply_judge.py`) instead of Llama Guard. Offline on the same 70 hand-labeled
+  replies: 14 of 22 caught (Llama Guard got 5), but 8 of 48 fine replies flagged, including "what's
+  the helpdesk extension". The Llama Guard reply categories were removed. The offline test is now
+  `uv run python -m redteam.scoring.check_replies`. 45 tests pass.
+  Report: `reports/2026-11-18-reply-judge.md`.
 - promptfoo asks for email verification the first time you run a red team eval on a machine.
 
 ## Machines
@@ -85,7 +91,7 @@ Read this at the start of every session. Update it at the end, before you push.
   and `ollama pull llama-guard3:8b` before the next replay. That's 14 GB, so check it runs on the Air.
 - Windows (`C:\dev\llm-redteam-lab`): PowerShell, no `make`. Ollama + llama3.2:3b installed
   2026-10-15, qwen2.5:14b (grader, 9 GB) 2026-10-25, llama-guard3:8b (input guard, 4.9 GB)
-  2026-10-27, promptfoo via `npx`. A replay takes about 12 minutes, or about 31 with the input
+  2026-10-27, llama3.1:8b (reply judge, 4.9 GB) 2026-11-18, promptfoo via `npx`. A replay takes about 12 minutes, or about 31 with the input
   guard on because the three models don't all fit in 16 GB. (llama-guard3:1b is also pulled but
   unused, `ollama rm llama-guard3:1b` frees 1.6 GB.)
 - CLAUDE.md is git-ignored locally (`.git/info/exclude`) on Windows, so edit it by hand on each machine.
@@ -106,8 +112,6 @@ terminal.
 
 ## Next up
 
-1. Try a general instruct model as the reply judge, offline on the same 70 labeled replies first.
-   Not qwen2.5:14b, since it's the grader. The offline script idea: run the judge on every final
-   reply in `reports/raw/*.json` and compare to the hand-review tables in the reports.
-2. If it does well, generate a fourth attack set and run it live.
-3. Repeat runs on the held-out set for a range, then Prompt Guard and Presidio.
+1. Generate a fourth attack set and run all layers plus the reply judge live, with `benign.yaml`.
+2. More normal questions in `benign.yaml`. 20 is too few to measure a 5% false-flag rate.
+3. Repeat runs for a range, then Prompt Guard and Presidio.
